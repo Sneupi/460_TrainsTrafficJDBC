@@ -4,23 +4,21 @@ import java.sql.*;
 
 public class Prog3 {
 
-    public static Connection getConnection(String oracleURL, String username, String password) {
-        // load the (Oracle) JDBC driver by initializing its base
-        // class, 'oracle.jdbc.OracleDriver'.
+    public static Connection getConnection(String driverClass, String dbURL) {
+        // load the JDBC driver by initializing its base class.
         try {
-            Class.forName("oracle.jdbc.OracleDriver");
+            Class.forName(driverClass);
         } catch (ClassNotFoundException e) {
             System.err.println("*** ClassNotFoundException:  "
-                    + "Error loading Oracle JDBC driver.  \n"
+                    + "Error loading JDBC driver \""+driverClass+"\"\n"
                     + "\tPerhaps the driver is not on the Classpath?");
             System.exit(-1);
         }
 
-        // make and return a database connection to the user's
-        // Oracle database
+        // make and return a database connection to the user's db
         Connection dbconn = null;
         try {
-            dbconn = DriverManager.getConnection(oracleURL, username, password);
+            dbconn = DriverManager.getConnection(dbURL);
         } catch (SQLException e) {
             System.err.println("*** SQLException:  "
                     + "Could not open JDBC connection.");
@@ -33,22 +31,18 @@ public class Prog3 {
     }
 
     public static Connection getConnection(String[] args) {
-        String username = null, // Oracle DBMS username
-                password = null, // Oracle DBMS password
-                oracleURL = null;
+        String dbURL = null, driverClass = null;
 
-        if (args.length == 3) { // get username/password from cmd line args
-            oracleURL = args[0];
-            username = args[1];
-            password = args[2];
+        if (args.length == 2) { // get credentials from user args
+            driverClass = args[0];
+            dbURL = args[1];
         } else {
-            System.out.println("\nUsage: java Prog3 <oracleURL> <username> <password>\n"
-                    + "\t<oracleURL> Oracle database URL\n"
-                    + "\t<username> Oracle DBMS username\n"
-                    + "\t<password> Oracle password (not system)");
+            System.out.println("\nUsage: java Prog3 <driverClass> <dbURL>\n"
+                    + "\t<driverClass> : JDBC driver classname (e.g. \"oracle.jdbc.OracleDriver\")\n"
+                    + "\t<dbURL>       : Database URL (e.g. \"jdbc:oracle:thin:YOUR_USERNAME/YOUR_PASSWORD@HOST:PORT:oracle\")\n");
             System.exit(-1);
         }
-        return Prog3.getConnection(oracleURL, username, password);
+        return Prog3.getConnection(driverClass, dbURL);
     }
 
     public static String resultSetToString(ResultSet rs) throws SQLException {
@@ -87,7 +81,6 @@ public class Prog3 {
         }
         return sb.toString();
     }
-
 
     public static void executeQuery(String query, Connection dbconn) {
         Statement stmt = null;

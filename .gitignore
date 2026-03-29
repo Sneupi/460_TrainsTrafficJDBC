@@ -1,2 +1,2 @@
-.env
-.class
+*.class
+*.db
