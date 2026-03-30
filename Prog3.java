@@ -21,10 +21,11 @@ public class Prog3 {
     // Display incident count by state (top 10, descending) for given year
     public static void executeB(Connection dbconn, String schema, String year) throws SQLException {
 
-        String sql = "SELECT state_name, COUNT(*) AS incident_count FROM " + schema + ".\"" + year + "\" "
+        String sql = "SELECT * FROM ("
+                + "SELECT state_name, COUNT(*) AS incident_count FROM " + schema + ".\"" + year + "\" "
                 + "GROUP BY state_name "
                 + "ORDER BY incident_count DESC "
-                + "LIMIT 10";
+                + ") WHERE ROWNUM <= 10";
 
         Prog3.executeQuery(sql, dbconn);
     }
@@ -32,7 +33,8 @@ public class Prog3 {
     // Display largest % drop in incident count by state (top 5, descending) between given years
     public static void executeC(Connection dbconn, String schema, String year1, String year2) throws SQLException {
 
-        String sql = "SELECT y1.state_name, "
+        String sql = "SELECT * FROM ("
+                + "SELECT y1.state_name, "
                 + "     y1.incident_count AS incidents_" + year1 + ", "
                 + "     y2.incident_count AS incidents_" + year2 + ", "
                 + "     ROUND(100.0 * ((y1.incident_count - y2.incident_count) / (1.0 * y1.incident_count)), 2) AS percent_drop "
@@ -42,7 +44,7 @@ public class Prog3 {
                 + "\" GROUP BY state_name) y2 "
                 + "ON y1.state_name = y2.state_name "
                 + "ORDER BY percent_drop DESC "
-                + "LIMIT 5";
+                + ") WHERE ROWNUM <= 5";
 
         Prog3.executeQuery(sql, dbconn);
     }
@@ -50,7 +52,8 @@ public class Prog3 {
     // Display largest % drop in incident count by field (top 10, descending) between given years
     public static void executeD(Connection dbconn, String schema, String year1, String year2, String field) throws SQLException {
         
-        String sql = "SELECT y1." + field + ", "
+        String sql = "SELECT * FROM ("
+                + "SELECT y1." + field + ", "
                 + "     y1.incident_count AS incidents_" + year1 + ", "
                 + "     y2.incident_count AS incidents_" + year2 + ", "
                 + "     ROUND(100.0 * ((y1.incident_count - y2.incident_count) / (1.0 * y1.incident_count)), 2) AS percent_drop "
@@ -60,7 +63,7 @@ public class Prog3 {
                 + "\" GROUP BY " + field + ") y2 "
                 + "ON y1." + field + " = y2." + field + " "
                 + "ORDER BY percent_drop DESC "
-                + "LIMIT 10";
+                + ") WHERE ROWNUM <= 10";
 
         Prog3.executeQuery(sql, dbconn);
     }
