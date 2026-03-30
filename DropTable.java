@@ -57,7 +57,9 @@ public class DropTable {
         try (Connection dbconn = DriverManager.getConnection(dbURL);
             Statement stmt = dbconn.createStatement()) {
 
-            stmt.execute("DROP TABLE IF EXISTS " + schemaName + ".\"" + tableName + "\"" );
+            // Oracle 11c doesnt support "if exists"??
+            stmt.execute("DROP TABLE " + schemaName + ".\"" + tableName + "\"" );
+            // stmt.execute("DROP TABLE IF EXISTS " + schemaName + ".\"" + tableName + "\"" );
             System.out.println("Success \"" + schemaName + "." + tableName + "\" table dropped!");
 
         } catch (SQLException e) {

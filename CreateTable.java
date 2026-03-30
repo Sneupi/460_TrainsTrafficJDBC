@@ -14,8 +14,7 @@ import java.util.*;
  * railroad_code                VARCHAR2(100)
  * incident_number              VARCHAR2(100)
  * grade_crossing_id            VARCHAR2(100)
- * date                         DATE
- * time                         TIME
+ * date_time                    TIMESTAMP     <-- date,time values combined
  * state_name                   VARCHAR2(100)
  * highway_user                 VARCHAR2(100)
  * temperature                  INT
@@ -33,21 +32,28 @@ public class CreateTable {
 
         // Split line for parse
         String[] parts = csvRow.split(",");
-        
+
         // Validate & transform each field
         for (int i = 0; i < parts.length; i++) {
 
             // if empty, set NULL
-            if (parts[i].isEmpty()) {
+            if (parts[i].isEmpty() && !(i == 3 || i == 4)) {
                 parts[i] = "NULL";
             }
-            // date
+            // (timestamp) date & time -> date_time
             else if (i == 3) {
-                parts[i] = "'" + LocalDate.parse(parts[3]).toString() + "'";
-            }
-            // time
-            else if (i == 4) {
-                parts[i] = "'" + LocalTime.parse(parts[4], formatTimeCSV).format(formatTimeSQL) + "'";
+                // good case
+                if (!parts[3].isEmpty() && !parts[4].isEmpty()) {
+                    parts[3] = "TIMESTAMP '" + LocalDate.parse(parts[3]).toString() + " "
+                            + LocalTime.parse(parts[4], formatTimeCSV).format(formatTimeSQL) + "'";
+                    parts[4] = "";
+                }
+                // if either are bad, we can't store timestamp
+                else {
+                    parts[3] = "NULL";
+                    parts[4] = "";
+                }
+                i++; // skip over time, was merged into date
             }
             // (int) tempurature, num locomotive units, num cars
             else if (Arrays.asList(7, 10, 11).contains(i)) {
@@ -60,26 +66,29 @@ public class CreateTable {
         }
 
         // Assemble & return tuple
-        return "(" + String.join(", ", parts) + ")";
+        return "(" + String.join(", ", parts).replace(", ,", ",") + ")";
     }
 
     public static void initTable(String schemaName, String tableName, Connection dbconn) throws SQLException {
 
         // Ensure schema exists
-        try (Statement stmt = dbconn.createStatement()) {
-            stmt.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
-        }
-        System.out.println("Success \"" + schemaName + "\" schema creation!");
+        // try (Statement stmt = dbconn.createStatement()) {
+        //     stmt.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
+        // }
+        // System.out.println("Success \"" + schemaName + "\" schema creation!");
+        // ^^^ not apparently needed for Oracle
 
         // Ensure table exists
         try (Statement stmt = dbconn.createStatement()) {
-            String createSql = "CREATE TABLE IF NOT EXISTS " + schemaName + ".\"" + tableName + "\" "
+            // H2
+            // String createSql = "CREATE TABLE IF NOT EXISTS " + schemaName + ".\"" + tableName + "\" "
+            // Oracle
+            String createSql = "CREATE TABLE " + schemaName + ".\"" + tableName + "\" "
                     + "("
                     + "railroad_code VARCHAR2(100),"
                     + "incident_number VARCHAR2(100),"
                     + "grade_crossing_id VARCHAR2(100),"
-                    + "date DATE,"
-                    + "time TIME,"
+                    + "date_time TIMESTAMP,"
                     + "state_name VARCHAR2(100),"
                     + "highway_user VARCHAR2(100),"
                     + "temperature INT,"
@@ -92,30 +101,38 @@ public class CreateTable {
         }
         System.out.println("Success " + schemaName + ".\"" + tableName + "\" table creation!");
 
+        // For Oracle, allow everyone to read tables
+        try (Statement stmt = dbconn.createStatement()) {
+            stmt.execute("GRANT SELECT ON " + schemaName + ".\"" + tableName + "\" TO PUBLIC");
+        }
+        System.out.println("Success " + schemaName + ".\"" + tableName + "\" table is publically accessible!");
     }
 
-    public static void populateTable(String schemaName, String tableName, String csvpath, Connection dbconn) throws SQLException {
+    public static void populateTable(String schemaName, String tableName, String csvpath, Connection dbconn)
+            throws SQLException {
 
         final String insertSql = "INSERT INTO " + schemaName + ".\"" + tableName + "\" "
-        + "(railroad_code, incident_number, grade_crossing_id, date, time, state_name, highway_user, temperature, visibility, weather_condition, number_of_locomotive_units, number_of_cars)"
-        + " VALUES ";
-        
+                + "(railroad_code, incident_number, grade_crossing_id, date_time, state_name, highway_user, temperature, visibility, weather_condition, number_of_locomotive_units, number_of_cars)"
+                + " VALUES ";
+
         String line = "";
         int lineCount = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvpath));
-            Statement stmt = dbconn.createStatement()) {
-            
+                Statement stmt = dbconn.createStatement()) {
+
             dbconn.setAutoCommit(false);
-            
+
             br.readLine(); // skip headers
             
+            System.out.println("Committing CSV rows to SQL...");
             while ((line = br.readLine()) != null) {
 
                 stmt.addBatch(insertSql + CreateTable.csvToSql(line));
+                lineCount++;
 
-                // batch insertions every 500 lines
-                if (lineCount % 500 == 0) {
+                // batch insertions every 200 lines
+                if (lineCount % 200 == 0) {
                     stmt.executeBatch();
                     dbconn.commit();
                 }
@@ -124,15 +141,15 @@ public class CreateTable {
             // commit last batch
             stmt.executeBatch();
             dbconn.commit();
-            
+            System.out.println("Successfully commit " + lineCount + " CSV rows to " + schemaName + ".\"" + tableName + "\"");
+
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             dbconn.setAutoCommit(true);
         }
     }
-    
+
     public static void main(String[] args) {
 
         if (args.length != 4) {
@@ -170,7 +187,7 @@ public class CreateTable {
                     "Invalid CSV file \"" + csvpath + "\". Should be valid file of format: \"highwayrail????.csv\"");
             System.exit(-1);
         }
-        
+
         // Get year (tablename)
         String tableName = csvpath.substring(csvpath.length() - 8, csvpath.length() - 4);
 
@@ -181,7 +198,7 @@ public class CreateTable {
             CreateTable.populateTable(schemaName, tableName, csvpath, dbconn);
 
         } catch (SQLException e) {
-
+            e.printStackTrace();
             System.err.println("*** SQLException:");
             System.err.println("\tMessage:   " + e.getMessage());
             System.err.println("\tSQLState:  " + e.getSQLState());
@@ -191,3 +208,5 @@ public class CreateTable {
 
     }
 }
+
+

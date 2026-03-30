@@ -2,17 +2,12 @@ SHELL:=/bin/bash
 -include .env
 export CLASSPATH := .:${DB_DRIVER}
 
-.PHONY: clean scrub prog3 example backup fetch login login_db
+.PHONY: clean prog3 example backup fetch login login_db create_tables drop_tables
 
 # clean local files
 clean: 
 	rm -f *.db
 	rm -f *.class
-
-# ensure files ready to insert
-scrub: highway*.csv clean
-	javac Scrubber.java
-	java Scrubber highway*.csv
 
 # run prog3 assignment
 prog3: clean
@@ -39,6 +34,23 @@ login:
 # login to DB shell
 login_db:
 # for H2 db
-	java -cp h2*.jar org.h2.tools.Shell -url ${DB_URL}
+#	java -cp h2*.jar org.h2.tools.Shell -url ${DB_URL}
 # for Oracle db
-# 	sqlpl ${DB_USERNAME}/${DB_PASSWORD}@oracle.aloe
+	sqlpl ${DB_USERNAME}/${DB_PASSWORD}@oracle.aloe
+
+# create tables
+create_tables: drop_tables
+	javac CreateTable.java
+	-java CreateTable ${DB_USERNAME} highwayrail1980.csv ${DB_CLASSNAME} ${DB_URL}
+	-java CreateTable ${DB_USERNAME} highwayrail1995.csv ${DB_CLASSNAME} ${DB_URL}
+	-java CreateTable ${DB_USERNAME} highwayrail2010.csv ${DB_CLASSNAME} ${DB_URL}
+	-java CreateTable ${DB_USERNAME} highwayrail2025.csv ${DB_CLASSNAME} ${DB_URL}
+	
+
+# drop tables
+drop_tables:
+	javac DropTable.java
+	-java DropTable ${DB_USERNAME} highwayrail1980.csv ${DB_CLASSNAME} ${DB_URL}
+	-java DropTable ${DB_USERNAME} highwayrail1995.csv ${DB_CLASSNAME} ${DB_URL}
+	-java DropTable ${DB_USERNAME} highwayrail2010.csv ${DB_CLASSNAME} ${DB_URL}
+	-java DropTable ${DB_USERNAME} highwayrail2025.csv ${DB_CLASSNAME} ${DB_URL}
