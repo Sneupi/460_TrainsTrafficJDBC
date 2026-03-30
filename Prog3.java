@@ -2,6 +2,29 @@
 import java.io.*;
 import java.sql.*;
 
+/**
+ * File: Prog3.java
+ * Author: Gabe Venegas
+ * Course: CSC 460
+ * Desc: Command line interface for SQL database using JDBC.
+ * Containing specific commands for views on highwayrail data.
+ * Each tuple in highwayrail tables are arranged as follows:
+ * 
+ * railroad_code                VARCHAR2(100)
+ * incident_number              VARCHAR2(100)
+ * grade_crossing_id            VARCHAR2(100)
+ * date_time                    TIMESTAMP
+ * state_name                   VARCHAR2(100)
+ * highway_user                 VARCHAR2(100)
+ * temperature                  INT
+ * visibility                   VARCHAR2(100)
+ * weather_condition            VARCHAR2(100)
+ * number_of_locomotive_units   INT
+ * number_of_cars               INT
+ * 
+ * NOTE: Each highwayrail table is named after the year of 
+ * its entries, and collected by db user (e.g. STUDENT_NAME.HWY_YEAR)
+ */
 public class Prog3 {
 
     // Get number of reports (row count) per year (table)
@@ -68,6 +91,7 @@ public class Prog3 {
         Prog3.executeQuery(sql, dbconn);
     }
 
+    // Gets nice String from ResultSet for printing 
     public static String resultSetToString(ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
@@ -105,6 +129,7 @@ public class Prog3 {
         return sb.toString();
     }
 
+    // Wrapper of Statement.executeQuery for printing & autoclose
     public static void executeQuery(String query, Connection dbconn) throws SQLException {
 
         try (Statement stmt = dbconn.createStatement();
@@ -117,6 +142,7 @@ public class Prog3 {
         }
     }
 
+    // Wrapper of Statement.executeUpdate for printing & autoclose
     public static void executeUpdate(String sql, Connection dbconn) throws SQLException {
         try (Statement stmt = dbconn.createStatement()) {
 
@@ -176,6 +202,7 @@ public class Prog3 {
                 if (query.equalsIgnoreCase("exit"))
                     break;
 
+
                 else if (query.equalsIgnoreCase("help"))
                     System.out.println(
                                     "\n\t--------------------------------------------------------------\n\n"
@@ -196,20 +223,24 @@ public class Prog3 {
                                     + "\t(All other commands will be treated as SQL statements)\n\n"
                                     + "\t--------------------------------------------------------------\n");
 
+
                 else if (query.toLowerCase().startsWith("?a")) {
                     String schema = query.split("\\s+")[1];
                     Prog3.executeA(dbconn, schema);
+
 
                 } else if (query.toLowerCase().startsWith("?b")) {
                     String schema = query.split("\\s+")[1];
                     String year = query.split("\\s+")[2];
                     Prog3.executeB(dbconn, schema, year);
 
+
                 } else if (query.toLowerCase().startsWith("?c")) {
                     String schema = query.split("\\s+")[1];
                     String year1 = query.split("\\s+")[2];
                     String year2 = query.split("\\s+")[3];
                     Prog3.executeC(dbconn, schema, year1, year2);
+
 
                 } else if (query.toLowerCase().startsWith("?d")) {
                     String schema = query.split("\\s+")[1];
@@ -218,19 +249,25 @@ public class Prog3 {
                     String field = query.split("\\s+")[4];
                     Prog3.executeD(dbconn, schema, year1, year2, field);
 
+
                 } else if (query.toLowerCase().startsWith("select"))
                     Prog3.executeQuery(query, dbconn);
 
                 else
                     Prog3.executeUpdate(query, dbconn);
 
+
             } catch (IOException e) {
                 System.err.println("Error reading input: " + e.getMessage());
+
+
             } catch (SQLException e) {
                 System.err.println("\n*** SQLException:");
                 System.err.println("    Message:   " + e.getMessage());
                 System.err.println("    SQLState:  " + e.getSQLState());
                 System.err.println("    ErrorCode: " + e.getErrorCode() + "\n");
+
+
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.err.println("Array out of bounds (..possibly missing a command arg?)");
             }
@@ -239,6 +276,7 @@ public class Prog3 {
         try {
             br.close();
             dbconn.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
