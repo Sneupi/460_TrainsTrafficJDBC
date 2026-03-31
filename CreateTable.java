@@ -11,15 +11,15 @@ import java.util.*;
  * Desc: CSV scrubber for highwayrail data, inserted to db via JDBC.
  * We expect a certain format of each line (tuple) in CSV:
  * 
- * railroad_code                VARCHAR2(100)
- * incident_number              VARCHAR2(100)
- * grade_crossing_id            VARCHAR2(100)
+ * railroad_code                VARCHAR2(30)
+ * incident_number              VARCHAR2(30)
+ * grade_crossing_id            VARCHAR2(30)
  * date_time                    TIMESTAMP     <-- date,time values combined
- * state_name                   VARCHAR2(100)
- * highway_user                 VARCHAR2(100)
+ * state_name                   VARCHAR2(30)
+ * highway_user                 VARCHAR2(30)
  * temperature                  INT
- * visibility                   VARCHAR2(100)
- * weather_condition            VARCHAR2(100)
+ * visibility                   VARCHAR2(30)
+ * weather_condition            VARCHAR2(30)
  * number_of_locomotive_units   INT
  * number_of_cars               INT
  */
@@ -85,15 +85,15 @@ public class CreateTable {
             // Oracle
             String createSql = "CREATE TABLE " + schemaName + ".\"" + tableName + "\" "
                     + "("
-                    + "railroad_code VARCHAR2(100),"
-                    + "incident_number VARCHAR2(100),"
-                    + "grade_crossing_id VARCHAR2(100),"
+                    + "railroad_code VARCHAR2(30),"
+                    + "incident_number VARCHAR2(30),"
+                    + "grade_crossing_id VARCHAR2(30),"
                     + "date_time TIMESTAMP,"
-                    + "state_name VARCHAR2(100),"
-                    + "highway_user VARCHAR2(100),"
+                    + "state_name VARCHAR2(30),"
+                    + "highway_user VARCHAR2(30),"
                     + "temperature INT,"
-                    + "visibility VARCHAR2(100),"
-                    + "weather_condition VARCHAR2(100),"
+                    + "visibility VARCHAR2(30),"
+                    + "weather_condition VARCHAR2(30),"
                     + "number_of_locomotive_units INT,"
                     + "number_of_cars INT"
                     + ")";

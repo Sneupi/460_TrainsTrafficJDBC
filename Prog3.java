@@ -10,15 +10,15 @@ import java.sql.*;
  * Containing specific commands for views on highwayrail data.
  * Each tuple in highwayrail tables are arranged as follows:
  * 
- * railroad_code                VARCHAR2(100)
- * incident_number              VARCHAR2(100)
- * grade_crossing_id            VARCHAR2(100)
+ * railroad_code                VARCHAR2(30)
+ * incident_number              VARCHAR2(30)
+ * grade_crossing_id            VARCHAR2(30)
  * date_time                    TIMESTAMP
- * state_name                   VARCHAR2(100)
- * highway_user                 VARCHAR2(100)
+ * state_name                   VARCHAR2(30)
+ * highway_user                 VARCHAR2(30)
  * temperature                  INT
- * visibility                   VARCHAR2(100)
- * weather_condition            VARCHAR2(100)
+ * visibility                   VARCHAR2(30)
+ * weather_condition            VARCHAR2(30)
  * number_of_locomotive_units   INT
  * number_of_cars               INT
  * 
@@ -180,7 +180,10 @@ public class Prog3 {
         } catch (ClassNotFoundException e) {
             System.err.println("*** ClassNotFoundException:  "
                     + "Error loading JDBC driver \"" + driverClass + "\"\n"
-                    + "\tPerhaps the driver is not on the Classpath?");
+                    + "\tPerhaps the driver is not on the Classpath?\n"
+                    + "Try adding the JDBC driver to your CLASSPATH env var:\n"
+                    + "\t...given a path to driver (jar)...\n" 
+                    + "\texport CLASSPATH=driverpath:${CLASSPATH}");
             System.exit(-1);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -206,9 +209,14 @@ public class Prog3 {
                 else if (query.equalsIgnoreCase("help"))
                     System.out.println(
                         "\n\t--------------------------------------------------------------\n\n"
-                        + "\tNOTE:\n"
-                        + "\tIn Oracle <schema> is user (student) which the tables are under\n\n"
-                        + "\t(e.g. <schema>.TABLE_NAME)\n\n"
+                        + "\tNOTE:\n\n"
+                        + "\tIn Oracle, <schema> is the user which the tables are under\n\n"
+                        + "\t\te.g. <schema>.TABLE_NAME\n\n"
+                        + "\tCourse TAs should find my tables under \"venegasg1\":\n\n"
+                        + "\t\tvenegasg1.1980\n"
+                        + "\t\tvenegasg1.1995\n"
+                        + "\t\tvenegasg1.2010\n"
+                        + "\t\tvenegasg1.2025\n\n"
                         + "\t--------------------------------------------------------------\n\n"
                         + "\t?tuple                              - Display highwayrail tuple fields & types\n\n"
                         + "\t?a <schema>                         - Display incident count by year\n\n"
@@ -226,15 +234,15 @@ public class Prog3 {
                 
                 else if (query.toLowerCase().startsWith("?tuple"))
                     System.out.println(
-                        "\n\trailroad_code                VARCHAR2(100)\n"
-                        + "\tincident_number              VARCHAR2(100)\n"
-                        + "\tgrade_crossing_id            VARCHAR2(100)\n"
+                        "\n\trailroad_code                VARCHAR2(30)\n"
+                        + "\tincident_number              VARCHAR2(30)\n"
+                        + "\tgrade_crossing_id            VARCHAR2(30)\n"
                         + "\tdate_time                    TIMESTAMP\n"
-                        + "\tstate_name                   VARCHAR2(100)\n"
-                        + "\thighway_user                 VARCHAR2(100)\n"
+                        + "\tstate_name                   VARCHAR2(30)\n"
+                        + "\thighway_user                 VARCHAR2(30)\n"
                         + "\ttemperature                  INT\n"
-                        + "\tvisibility                   VARCHAR2(100)\n"
-                        + "\tweather_condition            VARCHAR2(100)\n"
+                        + "\tvisibility                   VARCHAR2(30)\n"
+                        + "\tweather_condition            VARCHAR2(30)\n"
                         + "\tnumber_of_locomotive_units   INT\n"
                         + "\tnumber_of_cars               INT\n\n"
                     );
